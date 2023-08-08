@@ -1,0 +1,7 @@
+name: template2
+type: http
+config:
+  method: POST
+  path: https://www.123.com/post
+data: |
+  more text {{ .something }}

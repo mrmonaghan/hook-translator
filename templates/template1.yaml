@@ -1,0 +1,7 @@
+name: template1
+type: slack
+config:
+  channels:
+    - mike-notification-testing
+data: |
+  this is templated text {{ .name }}

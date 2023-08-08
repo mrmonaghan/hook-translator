@@ -1,0 +1,7 @@
+name: template3
+type: slack
+config:
+  channels:
+    - mike-notification-testing
+data: |
+  this is templated text {{ .nested.key }}
