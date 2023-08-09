@@ -1,4 +1,4 @@
-package templater
+package stitch
 
 import (
 	"bytes"
@@ -12,21 +12,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const (
-	SLACK_TYPE string = "slack"
-	HTTP_TYPE  string = "http"
-)
-
-type Executor interface {
-	Execute(string) error
-}
-
 type Template struct {
-	Name           string
-	Type           string
-	Config         *viper.Viper
-	TemplateString string `yaml:"data"`
-	Template       *template.Template
+	Name           string             `yaml:"name"`
+	Type           string             `yaml:"type"`
+	Config         *viper.Viper       `yaml:"-"`
+	TemplateString string             `yaml:"data"`
+	Template       *template.Template `yaml:"-"`
 }
 
 func (t *Template) Render(data any) (string, error) {

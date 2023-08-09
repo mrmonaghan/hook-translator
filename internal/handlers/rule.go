@@ -6,21 +6,22 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mrmonaghan/hook-translator/pkg/templater"
+	"github.com/mrmonaghan/hook-translator/internal/stitch"
+	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
 
 type RuleHandler struct {
-	Rules  map[string]templater.Rule
+	Rules  map[string]stitch.Rule
 	Logger *zap.SugaredLogger
+	Slack  *slack.Client
 }
 
 func (h *RuleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Printf("path is %s\n", r.URL.Path)
 	if r.URL.Path == "/rules" {
 
-		var rules []templater.Rule
+		var rules []stitch.Rule
 		for _, rule := range h.Rules {
 			rules = append(rules, rule)
 		}
@@ -66,7 +67,7 @@ func (h *RuleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, "", http.StatusInternalServerError)
 	}
-	h.Logger.Debug("template data", data)
+	h.Logger.Debugw("template data", data)
 
 	for _, template := range rule.Templates() {
 
@@ -75,6 +76,36 @@ func (h *RuleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(fmt.Errorf("error rendering template '%s': %w", template.Name, err))
 		}
 		h.Logger.Debugw("rendered template", "name", template.Name, "rendered_data", rendered)
+
+		switch template.Type {
+		case "slack":
+
+			var slackOpts slack.MsgOption
+			if template.Config.Get("blocks") == true {
+				h.Logger.Debugw("template has blocks enabled", "template", template.Name, err)
+				var blocks stitch.Blocks
+
+				fmt.Println(rendered)
+				if err := blocks.UnmarshalJSON([]byte(rendered)); err != nil {
+					h.Logger.Errorw("unable to process blocks", "template", template.Name, err)
+				}
+
+				slackOpts = slack.MsgOptionBlocks(blocks.Blocks...)
+			} else {
+				slackOpts = slack.MsgOptionText(rendered, false)
+			}
+
+			for _, channel := range template.Config.GetStringSlice("channels") {
+				messageID, _, err := h.Slack.PostMessage(channel, slackOpts)
+				if err != nil {
+					h.Logger.Errorw("error sending slack template", "template", template.Name, "channel", channel, err)
+				}
+
+				h.Logger.Debugw("successfully posted slack message", "template", template.Name, "channel", channel, "messageID", messageID)
+			}
+		default:
+			h.Logger.Debugw("template type is not recognized", "template", template.Name, "type", template.Type)
+		}
 	}
 
 }

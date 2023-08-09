@@ -1,0 +1,10 @@
+name: markdown-template
+type: slack
+config:
+  channels:
+    - mike-notification-testing
+data: |
+  This message is a standard markdown message.
+  It contains bolded *{{ .name }}*
+    Also italicized _{{ .name }}_
+    And some inline code `{{ .name }}`

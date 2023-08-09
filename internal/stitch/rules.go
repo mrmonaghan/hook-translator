@@ -1,4 +1,4 @@
-package templater
+package stitch
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 )
 
 type Rule struct {
-	Name          string
-	Enabled       bool
+	Name          string     `yaml:"name"`
+	Enabled       bool       `yaml:"enabled"`
 	TemplateNames []string   `yaml:"templates"`
 	templates     []Template `yaml:"-"`
 }

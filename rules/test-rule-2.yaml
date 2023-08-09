@@ -1,3 +1,0 @@
-name: test-rule-2
-enabled: true
-templates: ["template3", "template9"]
