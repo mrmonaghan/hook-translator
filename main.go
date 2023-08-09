@@ -42,6 +42,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/webhook", handler.ServeHTTP)
+	mux.HandleFunc("/rules", handler.ServeHTTP)
 
 	if err := http.ListenAndServe(":3333", mux); err != nil {
 		panic(fmt.Errorf("error starting HTTP server: %w", err))

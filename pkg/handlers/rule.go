@@ -16,6 +16,24 @@ type RuleHandler struct {
 }
 
 func (h *RuleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Printf("path is %s\n", r.URL.Path)
+	if r.URL.Path == "/rules" {
+
+		var rules []templater.Rule
+		for _, rule := range h.Rules {
+			rules = append(rules, rule)
+		}
+		b, err := json.Marshal(rules)
+		if err != nil {
+			http.Error(w, "", http.StatusInternalServerError)
+			return
+		}
+
+		http.Error(w, string(b), http.StatusOK)
+		return
+	}
+
 	requestedRule := r.URL.Query().Get("rule")
 	if requestedRule == "" {
 		h.Logger.Debugw("no 'rule' query parameter included in URL", "url", r.URL.RequestURI())
@@ -50,7 +68,7 @@ func (h *RuleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	h.Logger.Debug("template data", data)
 
-	for _, template := range rule.Templates {
+	for _, template := range rule.Templates() {
 
 		rendered, err := template.Render(data)
 		if err != nil {

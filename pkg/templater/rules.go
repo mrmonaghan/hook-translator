@@ -11,7 +11,11 @@ type Rule struct {
 	Name          string
 	Enabled       bool
 	TemplateNames []string   `yaml:"templates"`
-	Templates     []Template `yaml:"-"`
+	templates     []Template `yaml:"-"`
+}
+
+func (r *Rule) Templates() []Template {
+	return r.templates
 }
 
 func NewRule(path string, templates []Template) (Rule, error) {
@@ -29,7 +33,7 @@ func NewRule(path string, templates []Template) (Rule, error) {
 	for _, templateName := range r.TemplateNames {
 		for _, template := range templates {
 			if template.Name == templateName {
-				r.Templates = append(r.Templates, template)
+				r.templates = append(r.templates, template)
 			}
 		}
 	}
