@@ -15,3 +15,9 @@
 ### 
 - add http template type
 - add exec template type
+
+
+### What If...
+- a request is sent with the same rule included twice
+- multiple same-named rules or templates exist
+- rules and tempaltes are in the same directory

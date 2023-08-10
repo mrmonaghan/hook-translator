@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/mrmonaghan/hook-translator/internal/handlers"
-	"github.com/mrmonaghan/hook-translator/internal/stitch"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -42,23 +41,16 @@ var serverCmd = &cobra.Command{
 		}
 		logger.Debugw("loaded rules and templates", "rulesDir", rulesDir, "templateDir", templateDir)
 
-		// initialize Slack client
-		slack, err := stitch.InitSlack()
-		if err != nil {
-			logger.Panicw("unable to initialize slack client", err)
-		}
-
 		// create handler
 		handler := handlers.RuleHandler{
 			Rules:  rules,
 			Logger: logger,
-			Slack:  slack,
 		}
 
 		// initialize server
 		mux := http.NewServeMux()
-		mux.HandleFunc("/webhook", handler.ServeHTTP)
-		mux.HandleFunc("/rules", handler.ServeHTTP)
+		mux.HandleFunc("/webhook", handler.HandleWebhooks)
+		mux.HandleFunc("/rules", handler.HandleRules)
 
 		port, err := cmd.Flags().GetString("port")
 		if err != nil {

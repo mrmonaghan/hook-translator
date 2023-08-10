@@ -1,0 +1,9 @@
+name: slack-template-md
+actions:
+  - name: slack-action-1
+    slack:
+      channels:
+        - mike-notification-testing
+      message: |
+        Plain ol' markdown {{ .name }}
+

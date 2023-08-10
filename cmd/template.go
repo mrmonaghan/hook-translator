@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/mrmonaghan/hook-translator/internal/stitch"
+	"github.com/mrmonaghan/hook-translator/internal/templates"
 	"github.com/spf13/cobra"
 )
 
@@ -18,14 +18,14 @@ var templateCmd = &cobra.Command{
 		data := args[1]
 		templateDir, _ := rootCmd.PersistentFlags().GetString("template-dir")
 
-		templates, err := stitch.LoadTemplates(templateDir)
+		tpls, err := templates.LoadTemplates(templateDir)
 		if err != nil {
 			panic(fmt.Errorf("unable to load templates: %w", err))
 		}
 
-		var tmpl stitch.Template
+		var tmpl templates.Template
 		found := false
-		for _, template := range templates {
+		for _, template := range tpls {
 			if template.Name == templateName {
 				tmpl = template
 				found = true
@@ -37,19 +37,20 @@ var templateCmd = &cobra.Command{
 			fmt.Printf("no template '%s' found in template directory '%s'\n", templateName, templateDir)
 		}
 
-		m := make(map[string]interface{})
+		for _, action := range tmpl.Actions {
+			m := make(map[string]interface{})
 
-		if err := json.Unmarshal([]byte(data), &m); err != nil {
-			panic(fmt.Errorf("error processing template data: %w", err))
+			if err := json.Unmarshal([]byte(data), &m); err != nil {
+				panic(fmt.Errorf("error processing template data: %w", err))
+			}
+
+			rendered, err := action.Render(m)
+			if err != nil {
+				panic(fmt.Errorf("error rendering template '%s' action '%s': %w", templateName, action.GetName(), err))
+			}
+
+			fmt.Printf("|---- templateName: %s --- actionName: %s ----|\n%s", tmpl.Name, action.GetName(), rendered)
 		}
-
-		rendered, err := tmpl.Render(m)
-		if err != nil {
-			panic(fmt.Errorf("error rendering template '%s': %w", templateName, err))
-		}
-
-		fmt.Println(rendered)
-
 	},
 }
 

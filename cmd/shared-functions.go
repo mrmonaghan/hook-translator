@@ -5,12 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mrmonaghan/hook-translator/internal/stitch"
+	"github.com/mrmonaghan/hook-translator/internal/rules"
+	"github.com/mrmonaghan/hook-translator/internal/templates"
 )
 
-func stitchCmdInit(templateDir string, rulesDir string) (map[string]stitch.Rule, error) {
+func stitchCmdInit(templateDir string, rulesDir string) (map[string]rules.Rule, error) {
 
-	m := make(map[string]stitch.Rule)
+	m := make(map[string]rules.Rule)
 
 	// parse & validate directories
 	tDir, err := filepath.Abs(templateDir)
@@ -31,12 +32,12 @@ func stitchCmdInit(templateDir string, rulesDir string) (map[string]stitch.Rule,
 		return m, fmt.Errorf("unable to validate rules directory: %w", err)
 	}
 
-	templates, err := stitch.LoadTemplates(tDir)
+	tmpls, err := templates.LoadTemplates(tDir)
 	if err != nil {
 		return m, fmt.Errorf("unable to load templates: %w", err)
 	}
 
-	rules, err := stitch.LoadRules(rDir, templates)
+	rules, err := rules.LoadRules(rDir, tmpls)
 	if err != nil {
 		return m, fmt.Errorf("unable to load rules: %w", err)
 	}
